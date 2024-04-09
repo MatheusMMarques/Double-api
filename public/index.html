@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letra de Música</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #lyricsContainer {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+
+    #videoContainer {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Letra de Música</h1>
+    <div class="form-group">
+      <label for="artist">Artista:</label>
+      <input type="text" id="artist" placeholder="Nome do artista">
+    </div>
+    <div class="form-group">
+      <label for="track">Música:</label>
+      <input type="text" id="track" placeholder="Nome da música">
+    </div>
+    <button id="searchBtn">Buscar Letra</button>
+    <div id="lyricsContainer"></div>
+    <div id="videoContainer"></div>
+  </div>
+
+  <script>
+    async function searchVideo(artist, track) {
+      try {
+        const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+          params: {
+            key: 'AIzaSyAtiTVWTRIMfo_YdKUlUxi83psSQjOxMN0',
+            part: 'snippet',
+            q: `${artist} ${track} official video`,
+            type: 'video'
+          }
+        });
+
+        const videoId = response.data.items[0].id.videoId;
+        if (videoId) {
+          const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+          const iframe = document.createElement('iframe');
+          iframe.setAttribute('src', embedUrl);
+          iframe.setAttribute('width', '560');
+          iframe.setAttribute('height', '315');
+          iframe.setAttribute('frameborder', '0');
+          iframe.setAttribute('allowfullscreen', '');
+
+          const videoContainer = document.getElementById('videoContainer');
+          videoContainer.innerHTML = '';
+          videoContainer.appendChild(iframe);
+        } else {
+          console.log('Vídeo não encontrado.');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar vídeo do YouTube:', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchBtn = document.getElementById('searchBtn');
+
+      searchBtn.addEventListener('click', function() {
+        const artist = document.getElementById('artist').value.trim();
+        const track = document.getElementById('track').value.trim();
+
+        if (artist === '' || track === '') {
+          alert('Por favor, insira o nome do artista e da música.');
+          return;
+        }
+
+        searchLyrics(artist, track);
+      });
+    });
+
+    async function searchLyrics(artist, track) {
+      try {
+        const response = await axios.post('/search', { artist, track });
+        const lyrics = response.data;
+
+        const lyricsContainer = document.getElementById('lyricsContainer');
+        lyricsContainer.textContent = ''; // Limpa o conteúdo anterior
+        lyricsContainer.textContent = lyrics;
+
+        searchVideo(artist, track); // Chama a função para buscar o vídeo do YouTube
+      } catch (error) {
+        console.error('Erro ao buscar letra da música:', error);
+      }
+    }
+  </script>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</body>
+</html>
